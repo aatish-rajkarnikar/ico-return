@@ -13,7 +13,9 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
-  Alert
+  Alert,
+  TextInput,
+  Button
 } from 'react-native';
 import { StackNavigator } from 'react-navigation'
 
@@ -21,13 +23,23 @@ class ICOList extends Component<Props>{
 
   static navigationOptions = ({ navigation }) => {
     const params = navigation.state.params || {};
+    if (params.isSearching){
+      return {
+        headerTintColor: '#000',
+        headerTitle: <View style={{flexDirection: 'row', flex: 1, padding: 8}}>
+          <TextInput style={{flex: 1, borderWidth: 1, borderColor: '#000', padding: 8}} placeholder='search'/>
+          <Button title='cancel' color='#000' onPress={()=>{navigation.setParams({'isSearching': false})}}/>
+        </View>
+      };
+    }
+
     return {
       headerTitle: <Image
-          source={require('./whitelogo.png')}
-          style={{ width: 42, height: 42 }}
-        />,
+         source={require('./whitelogo.png')}
+         style={{ width: 42, height: 42 }}
+       /> ,
         headerRight: (
-          <TouchableOpacity activeOpacity={0.5} style={{marginRight: 16}}>
+          <TouchableOpacity activeOpacity={0.5} style={{marginRight: 16}} onPress={()=>{navigation.setParams({'isSearching': true})}}>
            <Image
              source={require('./search_icon.png')}
              style={{ width: 26, height: 26 }}
