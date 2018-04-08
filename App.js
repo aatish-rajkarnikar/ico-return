@@ -17,57 +17,37 @@ import {
   TextInput,
   Button
 } from 'react-native';
-import { StackNavigator } from 'react-navigation'
+import { StackNavigator } from 'react-navigation';
+import {
+  AdMobBanner,
+  AdMobInterstitial,
+  PublisherBanner,
+  AdMobRewarded,
+} from 'react-native-admob';
 
-class ICOList extends Component<Props>{
+class ReturnICOItem extends Component<Props>{
+  render(){
+    let returnValue = this.props.text.substr(0, this.props.text.indexOf('x'));
+    let val = parseFloat(returnValue);
+    let color = val > 1.0 ? '#2ecc71' : '#e74c3c';
+    return (
+      <View style={{borderRadius: 4, borderColor: color, borderWidth: 1, padding: 2}}>
+        <Text style={{fontSize: 12, color: color}}>{this.props.text}</Text>
+      </View>
+    );
+  }
+}
 
-  static navigationOptions = ({ navigation }) => {
-    const params = navigation.state.params || {};
-    if (params.isSearching){
-      return {
-        headerTintColor: '#000',
-        headerTitle: <View style={{flexDirection: 'row', flex: 1, padding: 8}}>
-          <TextInput style={{flex: 1, borderWidth: 1, borderColor: '#000', padding: 8}} placeholder='search'/>
-          <Button title='cancel' color='#000' onPress={()=>{navigation.setParams({'isSearching': false})}}/>
-        </View>
-      };
-    }
-
-    return {
-      headerTitle: <Image
-         source={require('./whitelogo.png')}
-         style={{ width: 42, height: 42 }}
-       /> ,
-        headerRight: (
-          <TouchableOpacity activeOpacity={0.5} style={{marginRight: 16}} onPress={()=>{navigation.setParams({'isSearching': true})}}>
-           <Image
-             source={require('./search_icon.png')}
-             style={{ width: 26, height: 26 }}
-            />
-         </TouchableOpacity>
-        ),
-        headerLeft: (
-          <TouchableOpacity activeOpacity={0.5} style={{marginLeft: 16}} onPress={params.onPressSync}>
-           <Image
-             source={require('./sync_icon.png')}
-             style={{ width: 26, height: 26 }}
-            />
-         </TouchableOpacity>
-        ),
-    };
-  };
-
+export default class App extends Component<Props> {
   constructor(props){
     super(props);
     this.state = {
       datasource : [],
-      search: false
+      searchText : "",
+      isSearching: false
     }
   }
 
-  componentWillMount(){
-    this.props.navigation.setParams({onPressSync: this.updateDataSource});
-  }
 
   componentDidMount(){
     this.updateDataSource();
@@ -77,8 +57,9 @@ class ICOList extends Component<Props>{
     return fetch('http://159.89.170.28/ico_ended')
     .then((response) => response.json())
     .then((responseJson) => {
+      let sortedData = responseJson.sort(function(a, b){return b.return_since_ico_usd>a.return_since_ico_usd});
       this.setState({
-        datasource : responseJson.sort(function(a, b){return b.return_since_ico_usd>a.return_since_ico_usd})
+        datasource : sortedData
       });
     })
     .catch((error) => {
@@ -86,9 +67,59 @@ class ICOList extends Component<Props>{
     });
   }
 
+
+  header(){
+    if (!this.state.isSearching){
+      return (
+        <View style={{flexDirection: 'row', marginTop: 20, height: 44, justifyContent: 'space-between', alignItems: 'center'}}>
+          <TouchableOpacity activeOpacity={0.5} style={{marginLeft: 16}} onPress={this.onPressSync}>
+           <Image
+             source={require('./sync_icon.png')}
+             style={{ width: 26, height: 26 }}
+            />
+         </TouchableOpacity>
+
+         <Image
+            source={require('./whitelogo.png')}
+            style={{ width: 44, height: 44 }}
+          />
+          <TouchableOpacity activeOpacity={0.5} style={{marginRight: 16}} onPress={()=>{
+            this.setState({'isSearching': true})
+          }}>
+           <Image
+             source={require('./search_icon.png')}
+             style={{ width: 26, height: 26 }}
+            />
+         </TouchableOpacity>
+        </View>
+      )
+    }
+
+    return(
+      <View style={{flexDirection: 'row', marginTop: 20, height: 44, justifyContent: 'space-between', alignItems:'center'}}>
+        <TextInput
+          style={{borderWidth: 1, borderColor: '#000', padding: 8, flex: 1}}
+          placeholder='search'
+          onChangeText={(text)=>{
+            this.setState({'searchText' : text})
+          }}
+          value={this.state.searchText}
+        />
+       <Button
+         title='cancel'
+         color='#000'
+         onPress={()=>{
+           this.setState({'isSearching': false, 'searchText' : ''})
+         }}
+       />
+      </View>
+    )
+  }
+
   render(){
     return (
       <View style={styles.container}>
+        {this.header()}
         <View style={{backgroundColor:'#000', height: 2}}></View>
         <View style={{flexDirection:'row', justifyContent: 'space-around', padding: 8}}>
           <Text style={{fontWeight: 'bold'}}>COIN</Text>
@@ -97,7 +128,7 @@ class ICOList extends Component<Props>{
         </View>
         <View style={{backgroundColor:'#000', height: 2}}></View>
         <FlatList
-          data={this.state.datasource}
+          data={this.state.datasource.filter(item => item.name.toUpperCase().includes(this.state.searchText.toUpperCase()) || item.ticker.toUpperCase().includes(this.state.searchText.toUpperCase()))}
           renderItem={ ({item})=>
           <View>
             <View style={{flex:1, flexDirection:'row', justifyContent: 'space-between', padding: 8}}>
@@ -121,41 +152,14 @@ class ICOList extends Component<Props>{
           </View>
         }
         />
+        <AdMobBanner
+          adSize="banner"
+          adUnitID="ca-app-pub-5492969470059595/2730231353"
+          testDevices={[AdMobBanner.simulatorId]}
+          onAdFailedToLoad={error => console.warn(error)}
+        />
       </View>
     );
-  }
-}
-
-class ReturnICOItem extends Component<Props>{
-  render(){
-    let returnValue = this.props.text.substr(0, this.props.text.indexOf('x'));
-    let val = parseFloat(returnValue);
-    let color = val > 1.0 ? '#2ecc71' : '#e74c3c';
-    return (
-      <View style={{borderRadius: 4, borderColor: color, borderWidth: 1, padding: 2}}>
-        <Text style={{fontSize: 12, color: color}}>{this.props.text}</Text>
-      </View>
-    );
-  }
-}
-
-const RootStack = StackNavigator({
-  Home: {
-    screen: ICOList
-  },
-},
-{
-    navigationOptions: {
-      headerStyle: {
-        backgroundColor: '#fff',
-      },
-      headerTintColor: '#000',
-    }
-});
-
-export default class App extends Component<Props> {
-  render() {
-    return <RootStack/>
   }
 }
 
