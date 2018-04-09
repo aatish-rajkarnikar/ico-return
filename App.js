@@ -69,9 +69,10 @@ export default class App extends Component<Props> {
 
 
   header(){
+
     if (!this.state.isSearching){
       return (
-        <View style={{flexDirection: 'row', marginTop: 20, height: 44, justifyContent: 'space-between', alignItems: 'center'}}>
+        <View style={{flexDirection: 'row', marginTop: Platform.OS === 'ios' ? 20 : 0, height: 44, justifyContent: 'space-between', alignItems: 'center'}}>
           <TouchableOpacity activeOpacity={0.5} style={{marginLeft: 16}} onPress={this.onPressSync}>
            <Image
              source={require('./sync_icon.png')}
@@ -96,18 +97,20 @@ export default class App extends Component<Props> {
     }
 
     return(
-      <View style={{flexDirection: 'row', marginTop: 20, height: 44, justifyContent: 'space-between', alignItems:'center'}}>
+      <View style={{flexDirection: 'row', marginTop: Platform.OS === 'ios' ? 20 : 0, marginLeft: 16, marginRight: 16, height: 44, justifyContent: 'space-between', alignItems:'center'}}>
         <TextInput
-          style={{borderWidth: 1, borderColor: '#000', padding: 8, flex: 1}}
+          style={{backgroundColor: '#ecf0f1', height: 36, padding: 8, flex: 1, borderRadius: 4, marginRight: 8}}
           placeholder='search'
           onChangeText={(text)=>{
             this.setState({'searchText' : text})
           }}
           value={this.state.searchText}
+          underlineColorAndroid='#ecf0f1'
         />
        <Button
          title='cancel'
          color='#000'
+         style={{marginLeft: 8}}
          onPress={()=>{
            this.setState({'isSearching': false, 'searchText' : ''})
          }}
