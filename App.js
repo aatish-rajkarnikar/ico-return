@@ -15,7 +15,8 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
-  Button
+  Button,
+  StatusBar
 } from 'react-native';
 import { StackNavigator } from 'react-navigation';
 import {
@@ -50,14 +51,21 @@ export default class App extends Component<Props> {
 
 
   componentDidMount(){
+    this.showInterstitial();
     this.updateDataSource();
   }
 
   updateDataSource(){
-    return fetch('http://159.89.170.28/ico_ended')
+    return fetch('http://159.89.172.199/icodrops_ended')
     .then((response) => response.json())
     .then((responseJson) => {
-      let sortedData = responseJson.sort(function(a, b){return b.return_since_ico_usd>a.return_since_ico_usd});
+      let sortedData = responseJson.sort(function(a, b){
+        let aReturnICO = a.return_since_ico_usd.substr(0, a.return_since_ico_usd.indexOf('x'))
+        let bReturnICO = b.return_since_ico_usd.substr(0, b.return_since_ico_usd.indexOf('x'))
+        let aValue = parseFloat(aReturnICO == '' ? 0 : aReturnICO);
+        let bValue = parseFloat(bReturnICO == '' ? 0 : bReturnICO);
+        return bValue-aValue;
+      });
       this.setState({
         datasource : sortedData
       });
@@ -65,6 +73,12 @@ export default class App extends Component<Props> {
     .catch((error) => {
       console.error(error);
     });
+  }
+
+  showInterstitial(){
+    AdMobInterstitial.setAdUnitID(Platform.OS === 'ios' ? 'ca-app-pub-5492969470059595/8084958793' : 'ca-app-pub-5492969470059595/3347513724');
+    AdMobInterstitial.setTestDevices([AdMobInterstitial.simulatorId]);
+    AdMobInterstitial.requestAd().then(() => AdMobInterstitial.showAd());
   }
 
 
@@ -122,9 +136,13 @@ export default class App extends Component<Props> {
   render(){
     return (
       <View style={styles.container}>
+        <StatusBar
+           backgroundColor="#FFF"
+           barStyle="dark-content"
+         />
         {this.header()}
         <View style={{backgroundColor:'#000', height: 2}}></View>
-        <View style={{flexDirection:'row', justifyContent: 'space-around', padding: 8}}>
+        <View style={{flexDirection:'row', justifyContent: 'space-between', padding: 8}}>
           <Text style={{fontWeight: 'bold'}}>COIN</Text>
           <Text style={{fontWeight: 'bold'}}>CURRENT PRICE</Text>
           <Text style={{fontWeight: 'bold'}}>RETURN SINCE ICO</Text>
@@ -135,7 +153,7 @@ export default class App extends Component<Props> {
           renderItem={ ({item})=>
           <View>
             <View style={{flex:1, flexDirection:'row', justifyContent: 'space-between', padding: 8}}>
-              <View style={{marginRight: 8, width: 76, flexDirection: 'column', alignItems: 'center'}}>
+              <View style={{marginRight: 8, flexDirection: 'column', alignItems: 'center'}}>
                 <Image style={{width: 50, height: 50}} source={{uri: item.logo}}  />
                 <Text style={{marginTop: 8, fontWeight: 'bold'}}>{item.ticker}</Text>
               </View>
@@ -155,11 +173,12 @@ export default class App extends Component<Props> {
           </View>
         }
         />
+
         <AdMobBanner
-          adSize="banner"
-          adUnitID="ca-app-pub-5492969470059595/2730231353"
+          adSize="smartBannerPortrait"
           testDevices={[AdMobBanner.simulatorId]}
-          onAdFailedToLoad={error => console.warn(error)}
+          adUnitID={Platform.OS === 'ios' ? "ca-app-pub-5492969470059595/2730231353" : "ca-app-pub-5492969470059595/9987573148"}
+          onAdFailedToLoad={error => console.error(error)}
         />
       </View>
     );
