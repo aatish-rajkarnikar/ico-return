@@ -1,4 +1,4 @@
-package com.ico;
+package com.coindev.icoreturns;
 
 import com.facebook.react.ReactActivity;
 
