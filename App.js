@@ -51,7 +51,7 @@ export default class App extends Component<Props> {
 
 
   componentDidMount(){
-    this.showInterstitial();
+    //this.showInterstitial();
     this.updateDataSource();
   }
 
@@ -174,12 +174,12 @@ export default class App extends Component<Props> {
         }
         />
 
-        <AdMobBanner
+        {/* <AdMobBanner
           adSize="smartBannerPortrait"
           testDevices={[AdMobBanner.simulatorId]}
           adUnitID={Platform.OS === 'ios' ? "ca-app-pub-5492969470059595/2730231353" : "ca-app-pub-5492969470059595/9987573148"}
           onAdFailedToLoad={error => console.error(error)}
-        />
+        /> */}
       </View>
     );
   }

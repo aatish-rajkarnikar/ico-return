@@ -1289,6 +1289,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.coindev.icoreturns;
 				PRODUCT_NAME = ico;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -1315,6 +1316,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.coindev.icoreturns;
 				PRODUCT_NAME = ico;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
