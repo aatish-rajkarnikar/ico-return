@@ -139,7 +139,7 @@ export default class App extends Component<Props> {
 
   content(){
     if (this.state.isLoading){
-      return <ActivityIndicator size='large' style={{margin: 16}}/>
+      return <View style={{flex:1}}><ActivityIndicator size='large' style={{margin: 16}}/></View>
     }
     return(
       <FlatList
