@@ -16,7 +16,8 @@ import {
   Alert,
   TextInput,
   Button,
-  StatusBar
+  StatusBar,
+  ActivityIndicator
 } from 'react-native';
 import { StackNavigator } from 'react-navigation';
 import {
@@ -45,7 +46,8 @@ export default class App extends Component<Props> {
     this.state = {
       datasource : [],
       searchText : "",
-      isSearching: false
+      isSearching: false,
+      isLoading: true
     }
   }
 
@@ -55,7 +57,8 @@ export default class App extends Component<Props> {
     this.updateDataSource();
   }
 
-  updateDataSource(){
+  updateDataSource=()=>{
+    this.setState({isLoading: true})
     return fetch('http://159.89.172.199/icodrops_ended')
     .then((response) => response.json())
     .then((responseJson) => {
@@ -67,7 +70,8 @@ export default class App extends Component<Props> {
         return bValue-aValue;
       });
       this.setState({
-        datasource : sortedData
+        datasource : sortedData,
+        isLoading: false
       });
     })
     .catch((error) => {
@@ -87,7 +91,7 @@ export default class App extends Component<Props> {
     if (!this.state.isSearching){
       return (
         <View style={{flexDirection: 'row', marginTop: Platform.OS === 'ios' ? 20 : 0, height: 44, justifyContent: 'space-between', alignItems: 'center'}}>
-          <TouchableOpacity activeOpacity={0.5} style={{marginLeft: 16}} onPress={this.onPressSync}>
+          <TouchableOpacity activeOpacity={0.5} style={{marginLeft: 16}} onPress={this.updateDataSource}>
            <Image
              source={require('./sync_icon.png')}
              style={{ width: 26, height: 26 }}
@@ -133,6 +137,39 @@ export default class App extends Component<Props> {
     )
   }
 
+  content(){
+    if (this.state.isLoading){
+      return <ActivityIndicator size='large' style={{margin: 16}}/>
+    }
+    return(
+      <FlatList
+        data={this.state.datasource.filter(item => item.name.toUpperCase().includes(this.state.searchText.toUpperCase()) || item.ticker.toUpperCase().includes(this.state.searchText.toUpperCase()))}
+        renderItem={ ({item})=>
+        <View>
+          <View style={{flex:1, flexDirection:'row', justifyContent: 'space-between', padding: 8}}>
+            <View style={{marginRight: 8, flexDirection: 'column', alignItems: 'center'}}>
+              <Image style={{width: 50, height: 50}} source={{uri: item.logo}}  />
+              <Text style={{marginTop: 8, fontWeight: 'bold'}}>{item.ticker}</Text>
+            </View>
+            <View style={{flexDirection: 'column', justifyContent: 'space-around'}}>
+              <Text style={{fontSize: 12}}>{item.token_price_usd}</Text>
+              <Text style={{fontSize: 12}}>{item.token_price_btc}</Text>
+              <Text style={{fontSize: 12}}>{item.token_price_eth}</Text>
+            </View>
+            <View style={{flexDirection: 'column', justifyContent: 'space-around'}}>
+              <ReturnICOItem text={item.return_since_ico_usd}/>
+              <ReturnICOItem text={item.return_since_ico_btc}/>
+              <ReturnICOItem text={item.return_since_ico_eth}/>
+            </View>
+          </View>
+          <Text style={{fontSize: 10, marginBottom: 8, marginRight: 8,alignSelf: 'flex-end', color: '#999'}}>ICO PRICE: {item.ico_token_price}</Text>
+          <View style={{flex:1, height: 0.5, backgroundColor:'#999'}}></View>
+        </View>
+      }
+      />
+    )
+  }
+
   render(){
     return (
       <View style={styles.container}>
@@ -148,38 +185,13 @@ export default class App extends Component<Props> {
           <Text style={{fontWeight: 'bold'}}>RETURN SINCE ICO</Text>
         </View>
         <View style={{backgroundColor:'#000', height: 2}}></View>
-        <FlatList
-          data={this.state.datasource.filter(item => item.name.toUpperCase().includes(this.state.searchText.toUpperCase()) || item.ticker.toUpperCase().includes(this.state.searchText.toUpperCase()))}
-          renderItem={ ({item})=>
-          <View>
-            <View style={{flex:1, flexDirection:'row', justifyContent: 'space-between', padding: 8}}>
-              <View style={{marginRight: 8, flexDirection: 'column', alignItems: 'center'}}>
-                <Image style={{width: 50, height: 50}} source={{uri: item.logo}}  />
-                <Text style={{marginTop: 8, fontWeight: 'bold'}}>{item.ticker}</Text>
-              </View>
-              <View style={{flexDirection: 'column', justifyContent: 'space-around'}}>
-                <Text style={{fontSize: 12}}>{item.token_price_usd}</Text>
-                <Text style={{fontSize: 12}}>{item.token_price_btc}</Text>
-                <Text style={{fontSize: 12}}>{item.token_price_eth}</Text>
-              </View>
-              <View style={{flexDirection: 'column', justifyContent: 'space-around'}}>
-                <ReturnICOItem text={item.return_since_ico_usd}/>
-                <ReturnICOItem text={item.return_since_ico_btc}/>
-                <ReturnICOItem text={item.return_since_ico_eth}/>
-              </View>
-            </View>
-            <Text style={{fontSize: 10, marginBottom: 8, marginRight: 8,alignSelf: 'flex-end', color: '#999'}}>ICO PRICE: {item.ico_token_price}</Text>
-            <View style={{flex:1, height: 0.5, backgroundColor:'#999'}}></View>
-          </View>
-        }
-        />
-
-        {/* <AdMobBanner
+        {this.content()}
+        <AdMobBanner
           adSize="smartBannerPortrait"
           testDevices={[AdMobBanner.simulatorId]}
           adUnitID={Platform.OS === 'ios' ? "ca-app-pub-5492969470059595/2730231353" : "ca-app-pub-5492969470059595/9987573148"}
           onAdFailedToLoad={error => console.error(error)}
-        /> */}
+        />
       </View>
     );
   }
